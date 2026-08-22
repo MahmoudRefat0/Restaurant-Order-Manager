@@ -5,7 +5,6 @@ public class Main {
         Restaurant restaurant = new Restaurant();
         Scanner scanner = new Scanner(System.in);
 
-        // إضافة بيانات المنيو الأساسية للتجربة المباشرة
         restaurant.addMenuItem(1, "Burger", 150.0, "Main Course");
         restaurant.addMenuItem(2, "Pizza", 200.0, "Main Course");
         restaurant.addMenuItem(3, "Pasta", 180.0, "Main Course");
