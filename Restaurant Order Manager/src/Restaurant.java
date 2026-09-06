@@ -2,6 +2,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
+import java.util.Optional;
 
 public class Restaurant {
     private ArrayList<MenuItem> menu;
@@ -16,57 +17,50 @@ public class Restaurant {
         this.completedOrders = new LinkedHashMap<>();
     }
 
-    // 1. Add Menu Item
+    // 1. Add Menu Item - Using Stream API and anyMatch instead of for-loop
     public boolean addMenuItem(int id, String name, double price, String category) {
-        for (MenuItem item : menu) {
-            if (item.getId() == id) {
-                System.out.println("Error: Menu item ID already exists!");
-                return false;
-            }
+        boolean exists = menu.stream()
+                .anyMatch(item -> item.getId() == id);
+
+        if (exists) {
+            System.out.println("Error: Menu item ID already exists!");
+            return false;
         }
+
         menu.add(new MenuItem(id, name, price, category));
         System.out.println("Menu item added successfully.");
         return true;
     }
 
-    // 2. Remove Menu Item
+    // 2. Remove Menu Item - Using removeIf
     public boolean removeMenuItem(int id) {
-        MenuItem toRemove = null;
-        for (MenuItem item : menu) {
-            if (item.getId() == id) {
-                toRemove = item;
-                break;
-            }
-        }
-        if (toRemove != null) {
-            menu.remove(toRemove);
+        boolean removed = menu.removeIf(item -> item.getId() == id);
+
+        if (removed) {
             System.out.println("Menu item removed successfully.");
             return true;
         }
+
         System.out.println("Error: Menu item not found.");
         return false;
     }
 
-    // 3. Display Menu
+    // 3. Display Menu - Using forEach with Method Reference
     public void displayMenu() {
         System.out.println("\n=== RESTAURANT MENU ===");
         if (menu.isEmpty()) {
             System.out.println("Menu is currently empty.");
             return;
         }
-        for (MenuItem item : menu) {
-            System.out.println(item);
-        }
+        menu.forEach(System.out::println);
     }
 
-    // 4. Search Menu Item
+    // 4. Search Menu Item - Using Stream API, filter, and findFirst
     public MenuItem searchMenuItem(int id) {
-        for (MenuItem item : menu) {
-            if (item.getId() == id) {
-                return item;
-            }
-        }
-        return null;
+        return menu.stream()
+                .filter(item -> item.getId() == id)
+                .findFirst()
+                .orElse(null);
     }
 
     // 5. Create Order
@@ -127,14 +121,13 @@ public class Restaurant {
         }
     }
 
-    // 8. Display Order
+    // 8. Display Order - Using Optional.ofNullable
     public void displayOrder(int orderId) {
-        Order order = orders.get(orderId);
-        if (order != null) {
-            order.displayOrder();
-        } else {
-            System.out.println("Error: Order not found.");
-        }
+        Optional.ofNullable(orders.get(orderId))
+                .ifPresentOrElse(
+                        Order::displayOrder,
+                        () -> System.out.println("Error: Order not found.")
+                );
     }
 
     // 9. Add Order to Kitchen Queue
@@ -183,26 +176,23 @@ public class Restaurant {
         return orders.get(orderId);
     }
 
-    // 12. Check Order Status
+    // 12. Check Order Status - Using Optional.ofNullable
     public void checkOrderStatus(int orderId) {
-        Order order = orders.get(orderId);
-        if (order != null) {
-            System.out.println("Order #" + orderId + " Status: " + order.getStatus());
-        } else {
-            System.out.println("Error: Order not found.");
-        }
+        Optional.ofNullable(orders.get(orderId))
+                .ifPresentOrElse(
+                        order -> System.out.println("Order #" + orderId + " Status: " + order.getStatus()),
+                        () -> System.out.println("Error: Order not found.")
+                );
     }
 
-    // 13. Display Completed Orders
+    // 13. Display Completed Orders - Using forEach on Collection values
     public void displayCompletedOrders() {
         System.out.println("\n=== COMPLETED ORDERS ===");
         if (completedOrders.isEmpty()) {
             System.out.println("No completed orders yet.");
             return;
         }
-        for (Order order : completedOrders.values()) {
-            order.displayOrder();
-        }
+        completedOrders.values().forEach(Order::displayOrder);
     }
 
     // 14. Cancel Order

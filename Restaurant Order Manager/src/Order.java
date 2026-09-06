@@ -39,50 +39,36 @@ public class Order {
         this.status = status;
     }
 
+    // 1. Calculate total using mapToDouble and sum from Stream API
     public void calculateTotal() {
-        double sum = 0.0;
-        for (OrderItem orderItem : items) {
-            sum += orderItem.calculateSubtotal();
-        }
-        this.total = sum;
+        this.total = items.stream()
+                .mapToDouble(OrderItem::calculateSubtotal)
+                .sum();
     }
 
+    // 2. Add item using Stream API with findFirst and ifPresentOrElse
     public void addItem(MenuItem menuItem, int quantity) {
-
-        boolean found = false;
-        for (OrderItem orderItem : items) {
-            if (orderItem.getItem().getId() == menuItem.getId()) {
-                orderItem.setQuantity(orderItem.getQuantity() + quantity);
-                found = true;
-                break;
-            }
-        }
-
-        if (!found) {
-            items.add(new OrderItem(menuItem, quantity));
-        }
+        items.stream()
+                .filter(orderItem -> orderItem.getItem().getId() == menuItem.getId())
+                .findFirst()
+                .ifPresentOrElse(
+                        orderItem -> orderItem.setQuantity(orderItem.getQuantity() + quantity),
+                        () -> items.add(new OrderItem(menuItem, quantity))
+                );
 
         calculateTotal();
     }
 
+    // 3. Remove item using removeIf
     public boolean removeItem(int menuItemId) {
-        OrderItem itemToRemove = null;
-        for (OrderItem orderItem : items) {
-            if (orderItem.getItem().getId() == menuItemId) {
-                itemToRemove = orderItem;
-                break;
-            }
-        }
-
-        if (itemToRemove != null) {
-            items.remove(itemToRemove);
+        boolean removed = items.removeIf(orderItem -> orderItem.getItem().getId() == menuItemId);
+        if (removed) {
             calculateTotal();
-            return true;
         }
-
-        return false;
+        return removed;
     }
 
+    // 4. Display order details using forEach
     public void displayOrder() {
         System.out.println("----------------------------------------");
         System.out.println("Order ID: " + orderId);
@@ -92,11 +78,9 @@ public class Order {
         if (items.isEmpty()) {
             System.out.println("  (No items added yet)");
         } else {
-            for (OrderItem orderItem : items) {
-                System.out.println("  - " + orderItem.getItem().getName()
-                        + " x " + orderItem.getQuantity()
-                        + " = $" + orderItem.calculateSubtotal());
-            }
+            items.forEach(orderItem -> System.out.println("  - " + orderItem.getItem().getName()
+                    + " x " + orderItem.getQuantity()
+                    + " = $" + orderItem.calculateSubtotal()));
         }
         System.out.println("Total Price: $" + total);
         System.out.println("----------------------------------------");
